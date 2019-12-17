@@ -44,3 +44,17 @@ func TestPoint_DetermineMembership(t *testing.T) {
 	assert.False(t, inSet)
 	assert.False(t, outSetPoint.inSet)
 }
+
+func TestNewGrid(t *testing.T) {
+	var fourGrid Grid
+
+	assert.NotPanics(t, func() {
+		fourGrid = NewGrid(complex(0.0, 0.0), 2, 2, 1.0)
+	})
+
+	assert.Equal(t, 2, len(fourGrid.points))
+
+	for _, col := range fourGrid.points {
+		assert.Equal(t, 2, len(col))
+	}
+}

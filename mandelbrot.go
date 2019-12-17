@@ -81,9 +81,9 @@ func NewGrid(center complex128, width, height int64, pixelWidth float64) Grid {
 		points[col] = make([]Point, height)
 
 		for row := range points[col] {
-			points[row][col] = NewPoint(
-				real(bottomLeft)+float64(row)*pixelWidth,
-				imag(bottomLeft)+float64(col)*pixelWidth,
+			points[col][row] = NewPoint(
+				real(bottomLeft)+float64(col)*pixelWidth,
+				imag(bottomLeft)+float64(row)*pixelWidth,
 			)
 		}
 	}
