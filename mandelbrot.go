@@ -9,7 +9,7 @@ type pointLocation complex128
 // If |current|^2 > max then we know that the point is _not_ in
 // the Mandelbrot set.
 const max float64 = 4.0
-const maxIterations = 10_000
+const maxIterations = 10000
 
 func newPointLocation(r float64, i float64) pointLocation {
 	return pointLocation(complex(r, i))
