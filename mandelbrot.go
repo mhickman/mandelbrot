@@ -1,5 +1,9 @@
 package mandelbrot
 
+import (
+	"sync"
+)
+
 type pointLocation complex128
 
 // If |current|^2 > max then we know that the point is _not_ in
@@ -16,7 +20,8 @@ type Point struct {
 	iteration int64
 	current   pointLocation
 
-	inSet bool
+	inSet     bool
+	processed bool
 }
 
 func (c pointLocation) abs2() float64 {
@@ -32,6 +37,10 @@ func (p *Point) Iterate() {
 }
 
 func (p *Point) DetermineMembership() bool {
+	if p.processed {
+		return p.inSet
+	}
+
 	i := 0
 
 	for i < maxIterations && p.current.abs2() < max {
@@ -45,6 +54,8 @@ func (p *Point) DetermineMembership() bool {
 		p.inSet = false
 	}
 
+	p.processed = true
+
 	return p.inSet
 }
 
@@ -54,6 +65,7 @@ func NewPoint(r float64, i float64) Point {
 		location:  newPointLocation(r, i),
 		iteration: 0,
 		current:   newPointLocation(0, 0),
+		processed: false,
 	}
 }
 
@@ -66,11 +78,11 @@ type Grid struct {
 	// [width-1]][0] is bottom right
 	// [0][height-1] is top left
 	// [width-1][height-1] is top right
-	points [][]Point
+	points [][]*Point
 }
 
 func NewGrid(center complex128, width, height int64, pixelWidth float64) Grid {
-	points := make([][]Point, width)
+	points := make([][]*Point, width)
 
 	halfWidth := 0.5 * pixelWidth * float64(width)
 	halfHeight := 0.5 * pixelWidth * float64(height)
@@ -78,13 +90,15 @@ func NewGrid(center complex128, width, height int64, pixelWidth float64) Grid {
 	bottomLeft := center - complex(halfWidth, halfHeight)
 
 	for col := range points {
-		points[col] = make([]Point, height)
+		points[col] = make([]*Point, height)
 
 		for row := range points[col] {
-			points[col][row] = NewPoint(
+			point := NewPoint(
 				real(bottomLeft)+float64(col)*pixelWidth,
 				imag(bottomLeft)+float64(row)*pixelWidth,
 			)
+
+			points[col][row] = &point
 		}
 	}
 
@@ -95,4 +109,21 @@ func NewGrid(center complex128, width, height int64, pixelWidth float64) Grid {
 		pixelWidth: pixelWidth,
 		points:     points,
 	}
+}
+
+func (g *Grid) IterateAll() {
+	var wg sync.WaitGroup
+
+	for _, row := range g.points {
+		for _, point := range row {
+			wg.Add(1)
+
+			go func(point *Point) {
+				defer wg.Done()
+				point.DetermineMembership()
+			}(point)
+		}
+	}
+
+	wg.Wait()
 }

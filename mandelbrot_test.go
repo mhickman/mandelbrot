@@ -18,7 +18,6 @@ func Test_abs2(t *testing.T) {
 	assert.Equal(t, 13.0, newPoint.abs2())
 }
 
-
 func TestPoint_Iterate(t *testing.T) {
 	newPoint := NewPoint(1.0, 2.0)
 
@@ -56,5 +55,17 @@ func TestNewGrid(t *testing.T) {
 
 	for _, col := range fourGrid.points {
 		assert.Equal(t, 2, len(col))
+	}
+}
+
+func TestGrid_IterateAll(t *testing.T) {
+	grid := NewGrid(complex(0.0, 0.0), 2, 2, 1.0)
+
+	grid.IterateAll()
+
+	for _, row := range grid.points {
+		for _, point := range row {
+			assert.True(t, point.processed)
+		}
 	}
 }
