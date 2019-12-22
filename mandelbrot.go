@@ -1,6 +1,8 @@
 package mandelbrot
 
 import (
+	"image"
+	"image/color"
 	"sync"
 )
 
@@ -34,6 +36,10 @@ func (c pointLocation) abs2() float64 {
 func (p *Point) Iterate() {
 	p.iteration = p.iteration + 1
 	p.current = p.current*p.current + p.location
+}
+
+func (p *Point) IsMandelbrot() bool {
+	return p.inSet
 }
 
 func (p *Point) DetermineMembership() bool {
@@ -111,6 +117,10 @@ func NewGrid(center complex128, width, height int64, pixelWidth float64) Grid {
 	}
 }
 
+func (g *Grid) Points() [][]*Point {
+	return g.points
+}
+
 func (g *Grid) IterateAll() {
 	var wg sync.WaitGroup
 
@@ -126,4 +136,22 @@ func (g *Grid) IterateAll() {
 	}
 
 	wg.Wait()
+}
+
+func (g *Grid) GenerateImage() image.Image {
+	r := image.Rect(0, 0, len(g.points), len(g.points[0]))
+
+	im := image.NewCMYK(r)
+
+	for i, row := range g.points {
+		for j, point := range row {
+			if point.inSet {
+				im.Set(i, j, color.Black)
+			} else {
+				im.Set(i, j, color.White)
+			}
+		}
+	}
+
+	return im
 }

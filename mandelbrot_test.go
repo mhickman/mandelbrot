@@ -69,3 +69,9 @@ func TestGrid_IterateAll(t *testing.T) {
 		}
 	}
 }
+
+func TestGrid_GenerateImage(t *testing.T) {
+	grid := NewGrid(complex(0.0, 0.0), 100, 50, 0.01)
+	grid.IterateAll()
+	grid.GenerateImage()
+}
