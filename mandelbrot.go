@@ -195,7 +195,7 @@ func (g *Grid) GenerateImage() image.Image {
 	return im
 }
 
-func interpolateInt(a uint32, b uint32, p float64) uint8 {
+func interpolateInt(a uint8, b uint8, p float64) uint8 {
 	p = math.Sqrt(p)
     compP := 1.0 - p
 
@@ -210,10 +210,21 @@ func interpolateColors(color1 color.Color, color2 color.Color, a float64) color.
 	color1r, color1g, color1b, color1a := color1.RGBA()
 	color2r, color2g, color2b, color2a := color2.RGBA()
 
+	var r1, r2, g1, g2, b1, b2, a1, a2 uint8
+
+	r1 |= uint8(color1r >> 8)
+	r2 |= uint8(color2r >> 8)
+	g1 |= uint8(color1g >> 8)
+	g2 |= uint8(color2g >> 8)
+	b1 |= uint8(color1b >> 8)
+	b2 |= uint8(color2b >> 8)
+	a1 |= uint8(color1a >> 8)
+	a2 |= uint8(color2a >> 8)
+
 	return color.RGBA {
-		R: interpolateInt(color1r, color2r, a),
-		G: interpolateInt(color1g, color2g, a),
-		B: interpolateInt(color1b, color2b, a),
-		A: interpolateInt(color1a, color2a, a),
+		R: interpolateInt(r1, r2, a),
+		G: interpolateInt(g1, g2, a),
+		B: interpolateInt(b1, b2, a),
+		A: interpolateInt(a1, a2, a),
 	}
 }
