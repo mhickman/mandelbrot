@@ -3,6 +3,7 @@ package mandelbrot
 import (
 	"image"
 	"image/color"
+	"math"
 	"sync"
 )
 
@@ -11,7 +12,7 @@ type pointLocation complex128
 // If |current|^2 > max then we know that the point is _not_ in
 // the Mandelbrot set.
 const max float64 = 4.0
-const maxIterations = 10000
+const maxIterations = 5000
 
 func newPointLocation(r float64, i float64) pointLocation {
 	return pointLocation(complex(r, i))
@@ -143,15 +144,76 @@ func (g *Grid) GenerateImage() image.Image {
 
 	im := image.NewCMYK(r)
 
+	min := int64(math.MaxInt64)
+	max := int64(0)
+
+	for _, row := range g.points {
+		for _, point := range row {
+			if !point.inSet {
+				if min > point.iteration {
+					min = point.iteration
+				}
+
+				if max < point.iteration {
+					max = point.iteration
+				}
+			}
+		}
+	}
+
 	for i, row := range g.points {
 		for j, point := range row {
 			if point.inSet {
 				im.Set(i, j, color.Black)
 			} else {
-				im.Set(i, j, color.White)
+				green := color.RGBA{
+					R: 0,
+					G: 0xff,
+					B: 0,
+					A: 0xff,
+				}
+
+				red := color.RGBA{
+					R: 0xff,
+					G: 0,
+					B: 0,
+					A: 0xff,
+				}
+
+				//grey := color.RGBA{
+				//	R: 0x30,
+				//	G: 0x30,
+				//	B: 0x30,
+				//	A: 0xff,
+				//}
+
+				im.Set(i, j, interpolateColors(green, red, float64(point.iteration) / float64(max)))
 			}
 		}
 	}
 
 	return im
+}
+
+func interpolateInt(a uint32, b uint32, p float64) uint8 {
+	p = math.Sqrt(p)
+    compP := 1.0 - p
+
+    aFloat := p * float64(a)
+    bFloat := compP * float64(b)
+
+	return uint8(aFloat + bFloat)
+}
+
+func interpolateColors(color1 color.Color, color2 color.Color, a float64) color.Color {
+
+	color1r, color1g, color1b, color1a := color1.RGBA()
+	color2r, color2g, color2b, color2a := color2.RGBA()
+
+	return color.RGBA {
+		R: interpolateInt(color1r, color2r, a),
+		G: interpolateInt(color1g, color2g, a),
+		B: interpolateInt(color1b, color2b, a),
+		A: interpolateInt(color1a, color2a, a),
+	}
 }
