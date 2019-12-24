@@ -17,6 +17,12 @@ func newPointLocation(r float64, i float64) pointLocation {
 	return pointLocation(complex(r, i))
 }
 
+func (c pointLocation) abs2() float64 {
+	r := real(complex128(c))
+	i := imag(complex128(c))
+	return r*r + i*i
+}
+
 type Point struct {
 	location  pointLocation
 	iteration int64
@@ -24,12 +30,6 @@ type Point struct {
 
 	inSet     bool
 	processed bool
-}
-
-func (c pointLocation) abs2() float64 {
-	r := real(complex128(c))
-	i := imag(complex128(c))
-	return r*r + i*i
 }
 
 // Take the point through one iteration of Z^2 + C
