@@ -138,25 +138,27 @@ func (g *Grid) IterateAll() {
 	wg.Wait()
 }
 
-func (g *Grid) GenerateImage() image.Image {
+func (g *Grid) GenerateImageWithPalette(p ColorPalette) image.Image {
 	r := image.Rect(0, 0, len(g.points), len(g.points[0]))
 
 	im := image.NewCMYK(r)
 
+	for i, row := range g.points {
+		for j, point := range row {
+			im.Set(i, j, p.Color(*point))
+		}
+	}
+
+	return im
+}
+
+func (g *Grid) GenerateImage() image.Image {
 	green := color.RGBA{
 		R: 0,
 		G: 0xff,
 		B: 0,
 		A: 0xff,
 	}
-
-	palette := NewLinearPalette(g, color.Black, green, color.Black)
-
-	for i, row := range g.points {
-		for j, point := range row {
-			im.Set(i, j, palette.Color(*point))
-		}
-	}
-
-	return im
+	p := NewLinearPalette(g, color.Black, green, color.Black)
+	return g.GenerateImageWithPalette(p)
 }
