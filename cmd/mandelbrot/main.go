@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	grid := mandelbrot.NewGrid(complex(-0.743643887037151,  0.131825904205330), 5000, 5000, 0.000000001)
+	grid := mandelbrot.NewGrid(complex(-0.743643887037151, 0.131825904205330), 5000, 5000, 0.000000001)
 	grid.IterateAll()
 
 	img := grid.GenerateImage()
