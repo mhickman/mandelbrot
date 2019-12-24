@@ -206,7 +206,6 @@ func interpolateInt(a uint8, b uint8, p float64) uint8 {
 }
 
 func interpolateColors(color1 color.Color, color2 color.Color, a float64) color.Color {
-
 	color1r, color1g, color1b, color1a := color1.RGBA()
 	color2r, color2g, color2b, color2a := color2.RGBA()
 
