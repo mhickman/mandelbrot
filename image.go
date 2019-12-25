@@ -108,15 +108,19 @@ type multiColorGradient struct {
 }
 
 func (g *multiColorGradient) Color(point Point) color.Color {
+	if point.inSet {
+		return g.inSetColor
+	}
+
 	percent := float64(point.iteration) / float64(g.maxIterations)
 
 	// find the index of the lowColor
 	i := sort.Search(len(g.colors), func(index int) bool {
-		return g.colors[index].Percent < percent
+		return g.colors[index].Percent > percent
 	})
 
-	lowColor := g.colors[i]
-	highColor := g.colors[i+1]
+	lowColor := g.colors[i-1]
+	highColor := g.colors[i]
 
 	return interpolateColors(
 		lowColor.Color,
