@@ -43,8 +43,10 @@ func TestNewMultiColorGradient_sortedColors(t *testing.T) {
 	}
 
 	unsortedColors := []GradientColor{highestColor, lowestColor}
+	grid := NewGrid(complex(0.0, 0.0), 2, 2, 1.0)
 
 	gradient := NewMultiColorGradient(
+		&grid,
 		unsortedColors,
 		red,
 		green,

@@ -17,14 +17,10 @@ type linearColorPalette struct {
 	maxIterations int64
 }
 
-func NewLinearPalette(
-	grid *Grid,
-	lowColor color.Color,
-	highColor color.Color,
-	inSetColor color.Color) ColorPalette {
+func findMax(g *Grid) int64 {
 	max := int64(0)
 
-	for _, row := range grid.points {
+	for _, row := range g.points {
 		for _, point := range row {
 			if !point.inSet {
 				if max < point.iteration {
@@ -34,11 +30,20 @@ func NewLinearPalette(
 		}
 	}
 
+	return max
+}
+
+func NewLinearPalette(
+	grid *Grid,
+	lowColor color.Color,
+	highColor color.Color,
+	inSetColor color.Color) ColorPalette {
+
 	return &linearColorPalette{
 		lowColor:      lowColor,
 		highColor:     highColor,
 		inSetColor:    inSetColor,
-		maxIterations: max,
+		maxIterations: findMax(grid),
 	}
 }
 
@@ -96,15 +101,32 @@ type GradientColor struct {
 }
 
 type multiColorGradient struct {
+	// sorted by Percent in the GradientColor field.
 	colors     []GradientColor
 	inSetColor color.Color
+	maxIterations int64
 }
 
 func (g *multiColorGradient) Color(point Point) color.Color {
-	panic("Implement me!")
+	percent := float64(point.iteration) / float64(g.maxIterations)
+
+	// find the index of the lowColor
+	i := sort.Search(len(g.colors), func(index int) bool {
+		return g.colors[index].Percent < percent
+	})
+
+	lowColor := g.colors[i]
+	highColor := g.colors[i+1]
+
+	return interpolateColors(
+		lowColor.Color,
+		highColor.Color,
+		(percent - lowColor.Percent) / (highColor.Percent - lowColor.Percent),
+	)
 }
 
 func NewMultiColorGradient(
+	grid *Grid,
 	colors []GradientColor,
 	minColor color.Color,
 	maxColor color.Color,
@@ -127,5 +149,6 @@ func NewMultiColorGradient(
 	return &multiColorGradient{
 		colors:     colors,
 		inSetColor: inSetColor,
+		maxIterations: findMax(grid),
 	}
 }
