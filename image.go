@@ -3,6 +3,7 @@ package mandelbrot
 import (
 	"image/color"
 	"math"
+	"sort"
 )
 
 type ColorPalette interface {
@@ -83,5 +84,48 @@ func (cp *linearColorPalette) Color(point Point) color.Color {
 			cp.highColor,
 			float64(point.iteration)/float64(cp.maxIterations),
 		)
+	}
+}
+
+type GradientColor struct {
+	// A number in [0.0, 1.0] that describes at what point this color will
+	// be 100%.
+	Percent float64
+
+	Color color.Color
+}
+
+type multiColorGradient struct {
+	colors     []GradientColor
+	inSetColor color.Color
+}
+
+func (g *multiColorGradient) Color(point Point) color.Color {
+	panic("Implement me!")
+}
+
+func NewMultiColorGradient(
+	colors []GradientColor,
+	minColor color.Color,
+	maxColor color.Color,
+	inSetColor color.Color,
+) ColorPalette {
+	colors = append(colors, GradientColor{
+		Percent: -0.01,
+		Color:   minColor,
+	})
+
+	colors = append(colors, GradientColor{
+		Percent: 1.01,
+		Color:   maxColor,
+	})
+
+	sort.Slice(colors, func(i, j int) bool {
+		return colors[i].Percent < colors[j].Percent
+	})
+
+	return &multiColorGradient{
+		colors:     colors,
+		inSetColor: inSetColor,
 	}
 }
