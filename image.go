@@ -10,13 +10,6 @@ type ColorPalette interface {
 	Color(point Point) color.Color
 }
 
-type linearColorPalette struct {
-	lowColor      color.Color
-	highColor     color.Color
-	inSetColor    color.Color
-	maxIterations int64
-}
-
 func findMax(g *Grid) int64 {
 	max := int64(0)
 
@@ -37,14 +30,9 @@ func NewLinearPalette(
 	grid *Grid,
 	lowColor color.Color,
 	highColor color.Color,
-	inSetColor color.Color) ColorPalette {
-
-	return &linearColorPalette{
-		lowColor:      lowColor,
-		highColor:     highColor,
-		inSetColor:    inSetColor,
-		maxIterations: findMax(grid),
-	}
+	inSetColor color.Color,
+) ColorPalette {
+	return NewMultiColorGradient(grid, []GradientColor{}, lowColor, highColor, inSetColor)
 }
 
 func interpolateInt(a uint8, b uint8, p float64) uint8 {
@@ -80,18 +68,6 @@ func interpolateColors(color1 color.Color, color2 color.Color, a float64) color.
 	}
 }
 
-func (cp *linearColorPalette) Color(point Point) color.Color {
-	if point.inSet {
-		return cp.inSetColor
-	} else {
-		return interpolateColors(
-			cp.lowColor,
-			cp.highColor,
-			float64(point.iteration)/float64(cp.maxIterations),
-		)
-	}
-}
-
 type GradientColor struct {
 	// A number in [0.0, 1.0] that describes at what point this color will
 	// be 100%.
@@ -102,8 +78,8 @@ type GradientColor struct {
 
 type multiColorGradient struct {
 	// sorted by Percent in the GradientColor field.
-	colors     []GradientColor
-	inSetColor color.Color
+	colors        []GradientColor
+	inSetColor    color.Color
 	maxIterations int64
 }
 
@@ -125,7 +101,7 @@ func (g *multiColorGradient) Color(point Point) color.Color {
 	return interpolateColors(
 		lowColor.Color,
 		highColor.Color,
-		(percent - lowColor.Percent) / (highColor.Percent - lowColor.Percent),
+		(percent-lowColor.Percent)/(highColor.Percent-lowColor.Percent),
 	)
 }
 
@@ -151,8 +127,8 @@ func NewMultiColorGradient(
 	})
 
 	return &multiColorGradient{
-		colors:     colors,
-		inSetColor: inSetColor,
+		colors:        colors,
+		inSetColor:    inSetColor,
 		maxIterations: findMax(grid),
 	}
 }
